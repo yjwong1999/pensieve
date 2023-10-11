@@ -85,7 +85,7 @@ def central_agent(net_params_queues, exp_queues):
                         filemode='w',
                         level=logging.INFO)
 
-    with tf.Session() as sess, open(LOG_FILE + '_test', 'wb') as test_log_file:
+    with tf.compat.v1.Session() as sess, open(LOG_FILE + '_test', 'wb') as test_log_file:
 
         actor = a3c.ActorNetwork(sess,
                                  state_dim=[S_INFO, S_LEN], action_dim=A_DIM,
