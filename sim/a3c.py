@@ -38,10 +38,10 @@ class ActorNetwork(object):
             self.set_network_params_op.append(self.network_params[idx].assign(param))
 
         # Selected action, 0-1 vector
-        self.acts = tf.placeholder(tf.float32, [None, self.a_dim])
+        self.acts = tf.compat.v1.placeholder(tf.float32, [None, self.a_dim])
 
         # This gradient will be provided by the critic network
-        self.act_grad_weights = tf.placeholder(tf.float32, [None, 1])
+        self.act_grad_weights = tf.compat.v1.placeholder(tf.float32, [None, 1])
 
         # Compute the objective (log action_vector and entropy)
         self.obj = tf.reduce_sum(tf.multiply(
