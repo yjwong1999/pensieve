@@ -29,10 +29,10 @@ os.system("sudo apt-get -f -y install")
 
 # tensorflow
 os.system("sudo apt-get -y install python-pip python-dev")
-os.system("sudo pip install tensorflow")
+os.system("sudo pip install tensorflow==2.12.0")
 
 # tflearn
-os.system("sudo pip install tflearn")
+os.system("sudo pip install tflearn==0.5.0")
 os.system("sudo apt-get -y install python-h5py")
 os.system("sudo apt-get -y install python-scipy")
 
