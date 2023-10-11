@@ -39,3 +39,8 @@ This script will run all schemes (buffer-based, rate-based, Festive, BOLA, fastM
 python run_exp.py
 ```
 The results will be saved to `real_exp/results` folder. More details can be found in `real_exp/README.md`.
+
+
+## Acknowledgement
+
+1. [Original implementation of pensieve](https://github.com/hongzimao/pensieve)
