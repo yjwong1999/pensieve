@@ -1,4 +1,4 @@
-# Pensieve
+# Pensieve (reimplementation and bug fixes)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1yONkb2k5UCdT3clVUvq3jnT15oOTy0IP?usp=sharing)
 
 Pensieve is a system that generates adaptive bitrate algorithms using reinforcement learning.
