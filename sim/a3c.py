@@ -59,7 +59,7 @@ class ActorNetwork(object):
             apply_gradients(zip(self.actor_gradients, self.network_params))
 
     def create_actor_network(self):
-        with tf.variable_scope('actor'):
+        with tf.compat.v1.variable_scope('actor'):
             inputs = tflearn.input_data(shape=[None, self.s_dim[0], self.s_dim[1]])
 
             split_0 = tflearn.fully_connected(inputs[:, 0:1, -1], 128, activation='relu')
