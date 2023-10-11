@@ -26,7 +26,7 @@ class ActorNetwork(object):
 
         # Get all network parameters
         self.network_params = \
-            tf.compat.v1.get_collection(tensorflow.compat.v1.TRAINABLE_VARIABLES, scope='actor')
+            tf.compat.v1.get_collection(tf.compat.v1.TRAINABLE_VARIABLES, scope='actor')
 
         # Set all network parameters
         self.input_network_params = []
@@ -252,7 +252,7 @@ def discount(x, gamma):
     """
     out = np.zeros(len(x))
     out[-1] = x[-1]
-    for i in reversed(xrange(len(x)-1)):
+    for i in reversed(range(len(x)-1)):
         out[i] = x[i] + gamma*out[i+1]
     assert x.ndim >= 1
     # More efficient version:
@@ -266,7 +266,7 @@ def compute_entropy(x):
     H(x) = - sum( p * log(p))
     """
     H = 0.0
-    for i in xrange(len(x)):
+    for i in range(len(x)):
         if 0 < x[i] < 1:
             H -= x[i] * np.log(x[i])
     return H
