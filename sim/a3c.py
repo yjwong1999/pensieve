@@ -26,13 +26,13 @@ class ActorNetwork(object):
 
         # Get all network parameters
         self.network_params = \
-            tf.compat.v1.get_collection(tf.compat.v1.trainable_variables, scope='actor')
+            tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.TRAINABLE_VARIABLES, scope='actor')
 
         # Set all network parameters
         self.input_network_params = []
         for param in self.network_params:
             self.input_network_params.append(
-                tf.placeholder(tf.float32, shape=param.get_shape()))
+                tf.compat.v1.placeholder(tf.float32, shape=param.get_shape()))
         self.set_network_params_op = []
         for idx, param in enumerate(self.input_network_params):
             self.set_network_params_op.append(self.network_params[idx].assign(param))
@@ -281,6 +281,6 @@ def build_summaries():
     tf.summary.scalar("Avg_entropy", avg_entropy)
 
     summary_vars = [td_loss, eps_total_reward, avg_entropy]
-    summary_ops = tf.summary.merge_all()
+    summary_ops = tf.compat.v1.summary.merge_all()
 
     return summary_ops, summary_vars
