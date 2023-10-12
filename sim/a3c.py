@@ -49,7 +49,7 @@ class ActorNetwork(object):
                                             axis=1, keepdims=True)),
                        -self.act_grad_weights)) \
                    + ENTROPY_WEIGHT * tf.reduce_sum(tf.multiply(self.out,
-                                                           tf.log(self.out + ENTROPY_EPS)))
+                                                           tf.compat.v1.log(self.out + ENTROPY_EPS)))
 
         # Combine the gradients here
         self.actor_gradients = tf.gradients(self.obj, self.network_params)
