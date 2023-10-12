@@ -55,7 +55,7 @@ class ActorNetwork(object):
         self.actor_gradients = tf.gradients(self.obj, self.network_params)
 
         # Optimization Op
-        self.optimize = tf.train.RMSPropOptimizer(self.lr_rate).\
+        self.optimize = tf.keras.optimizers.experimental.RMSprop(self.lr_rate).\
             apply_gradients(zip(self.actor_gradients, self.network_params))
 
     def create_actor_network(self):
@@ -129,19 +129,19 @@ class CriticNetwork(object):
 
         # Get all network parameters
         self.network_params = \
-            tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='critic')
+            tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.TRAINABLE_VARIABLES, scope='critic')
 
         # Set all network parameters
         self.input_network_params = []
         for param in self.network_params:
             self.input_network_params.append(
-                tf.placeholder(tf.float32, shape=param.get_shape()))
+                tf.compat.v1.placeholder(tf.float32, shape=param.get_shape()))
         self.set_network_params_op = []
         for idx, param in enumerate(self.input_network_params):
             self.set_network_params_op.append(self.network_params[idx].assign(param))
 
         # Network target V(s)
-        self.td_target = tf.placeholder(tf.float32, [None, 1])
+        self.td_target = tf.compat.v1.placeholder(tf.float32, [None, 1])
 
         # Temporal Difference, will also be weights for actor_gradients
         self.td = tf.subtract(self.td_target, self.out)
@@ -153,11 +153,11 @@ class CriticNetwork(object):
         self.critic_gradients = tf.gradients(self.loss, self.network_params)
 
         # Optimization Op
-        self.optimize = tf.train.RMSPropOptimizer(self.lr_rate).\
+        self.optimize = tf.keras.optimizers.experimental.RMSprop(self.lr_rate).\
             apply_gradients(zip(self.critic_gradients, self.network_params))
 
     def create_critic_network(self):
-        with tf.variable_scope('critic'):
+        with tf.compat.v1.variable_scope('critic'):
             inputs = tflearn.input_data(shape=[None, self.s_dim[0], self.s_dim[1]])
 
             split_0 = tflearn.fully_connected(inputs[:, 0:1, -1], 128, activation='relu')
