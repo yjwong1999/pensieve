@@ -293,13 +293,14 @@ def agent(agent_id, all_cooked_time, all_cooked_bw, net_params_queue, exp_queue)
             entropy_record.append(a3c.compute_entropy(action_prob[0]))
 
             # log time_stamp, bit_rate, buffer_size, reward
-            log_file.write(str(time_stamp) + '\t' +
+            log_file.write((
+                           str(time_stamp) + '\t' +
                            str(VIDEO_BIT_RATE[bit_rate]) + '\t' +
                            str(buffer_size) + '\t' +
                            str(rebuf) + '\t' +
                            str(video_chunk_size) + '\t' +
                            str(delay) + '\t' +
-                           str(reward) + '\n')
+                           str(reward) + '\n').encode('utf-8'))
             log_file.flush()
 
             # report experience to the coordinator
