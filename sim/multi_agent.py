@@ -96,9 +96,9 @@ def central_agent(net_params_queues, exp_queues):
 
         summary_ops, summary_vars = a3c.build_summaries()
 
-        sess.run(tf.global_variables_initializer())
-        writer = tf.summary.FileWriter(SUMMARY_DIR, sess.graph)  # training monitor
-        saver = tf.train.Saver()  # save neural net parameters
+        sess.run(tf.compat.v1.global_variables_initializer())
+        writer = tf.compat.v1.summary.FileWriter(SUMMARY_DIR, sess.graph)  # training monitor
+        saver = tf.compat.v1.train.Saver()  # save neural net parameters
 
         # restore neural net parameters
         nn_model = NN_MODEL
@@ -113,7 +113,7 @@ def central_agent(net_params_queues, exp_queues):
             # synchronize the network parameters of work agent
             actor_net_params = actor.get_network_params()
             critic_net_params = critic.get_network_params()
-            for i in xrange(NUM_AGENTS):
+            for i in range(NUM_AGENTS):
                 net_params_queues[i].put([actor_net_params, critic_net_params])
                 # Note: this is synchronous version of the parallel training,
                 # which is easier to understand and probe. The framework can be
@@ -135,7 +135,7 @@ def central_agent(net_params_queues, exp_queues):
             actor_gradient_batch = []
             critic_gradient_batch = []
 
-            for i in xrange(NUM_AGENTS):
+            for i in range(NUM_AGENTS):
                 s_batch, a_batch, r_batch, terminal, info = exp_queues[i].get()
 
                 actor_gradient, critic_gradient, td_batch = \
@@ -165,7 +165,7 @@ def central_agent(net_params_queues, exp_queues):
             #             assembled_critic_gradient[j] += critic_gradient_batch[i][j]
             # actor.apply_gradients(assembled_actor_gradient)
             # critic.apply_gradients(assembled_critic_gradient)
-            for i in xrange(len(actor_gradient_batch)):
+            for i in range(len(actor_gradient_batch)):
                 actor.apply_gradients(actor_gradient_batch[i])
                 critic.apply_gradients(critic_gradient_batch[i])
 
