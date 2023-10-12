@@ -55,7 +55,7 @@ class ActorNetwork(object):
         self.actor_gradients = tf.gradients(self.obj, self.network_params)
 
         # Optimization Op
-        self.optimize = tf.keras.optimizers.experimental.RMSprop(self.lr_rate).\
+        self.optimize = tf.compat.v1.train.RMSPropOptimizer(self.lr_rate).\
             apply_gradients(zip(self.actor_gradients, self.network_params))
 
     def create_actor_network(self):
@@ -153,7 +153,7 @@ class CriticNetwork(object):
         self.critic_gradients = tf.gradients(self.loss, self.network_params)
 
         # Optimization Op
-        self.optimize = tf.keras.optimizers.experimental.RMSprop(self.lr_rate).\
+        self.optimize = tf.compat.v1.train.RMSPropOptimizer(self.lr_rate).\
             apply_gradients(zip(self.critic_gradients, self.network_params))
 
     def create_critic_network(self):
