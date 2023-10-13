@@ -1,8 +1,10 @@
-import os
+import datetime
+import os, time
 import logging
 import numpy as np
 import multiprocessing as mp
-os.environ['CUDA_VISIBLE_DEVICES']=''
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"]="0,1"
 import tensorflow as tf
 import env
 import a3c
@@ -34,31 +36,31 @@ TRAIN_TRACES = './cooked_traces/'
 # NN_MODEL = './results/pretrain_linear_reward.ckpt'
 NN_MODEL = None
 
-
 def testing(epoch, nn_model, log_file):
     # clean up the test results folder
     os.system('rm -r ' + TEST_LOG_FOLDER)
-    os.system('mkdir ' + TEST_LOG_FOLDER)
-    
+    if not os.path.exists(TEST_LOG_FOLDER):
+        os.makedirs(TEST_LOG_FOLDER)
     # run test script
     os.system('python rl_test.py ' + nn_model)
     
     # append test performance to the log
-    rewards = []
+    rewards, entropies = [], []
     test_log_files = os.listdir(TEST_LOG_FOLDER)
     for test_log_file in test_log_files:
-        reward = []
-        with open(TEST_LOG_FOLDER + test_log_file, 'rb') as f:
+        reward, entropy = [], []
+        with open(TEST_LOG_FOLDER + test_log_file, 'r') as f:
             for line in f:
                 parse = line.split()
                 try:
+                    entropy.append(float(parse[-2]))
                     reward.append(float(parse[-1]))
                 except IndexError:
                     break
         rewards.append(np.sum(reward[1:]))
+        entropies.append(np.mean(entropy[1:]))
 
     rewards = np.array(rewards)
-
     rewards_min = np.min(rewards)
     rewards_5per = np.percentile(rewards, 5)
     rewards_mean = np.mean(rewards)
@@ -75,6 +77,8 @@ def testing(epoch, nn_model, log_file):
                    str(rewards_max) + '\n')
     log_file.flush()
 
+    return rewards_mean, np.mean(entropies)
+
 
 def central_agent(net_params_queues, exp_queues):
 
@@ -85,7 +89,7 @@ def central_agent(net_params_queues, exp_queues):
                         filemode='w',
                         level=logging.INFO)
 
-    with tf.compat.v1.Session() as sess, open(LOG_FILE + '_test', 'wb') as test_log_file:
+    with tf.compat.v1.Session() as sess, open(LOG_FILE + '_test', 'w') as test_log_file:
 
         actor = a3c.ActorNetwork(sess,
                                  state_dim=[S_INFO, S_LEN], action_dim=A_DIM,
@@ -97,7 +101,11 @@ def central_agent(net_params_queues, exp_queues):
         summary_ops, summary_vars = a3c.build_summaries()
 
         sess.run(tf.compat.v1.global_variables_initializer())
-        writer = tf.compat.v1.summary.FileWriter(SUMMARY_DIR, sess.graph)  # training monitor
+        curr_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        TRAIN_SUMMARY_DIR = './results/'+curr_time+'/train'
+        TEST_SUMMARY_DIR = './results/'+curr_time+'/test'
+        writer = tf.compat.v1.summary.FileWriter(TRAIN_SUMMARY_DIR, sess.graph)  # training monitor
+        test_writer = tf.compat.v1.summary.FileWriter(TEST_SUMMARY_DIR, sess.graph)  # training monitor
         saver = tf.compat.v1.train.Saver()  # save neural net parameters
 
         # restore neural net parameters
@@ -107,6 +115,7 @@ def central_agent(net_params_queues, exp_queues):
             print("Model restored.")
 
         epoch = 0
+        test_avg_reward, test_avg_entropy, test_avg_td_loss = 0, 0.5, 0
 
         # assemble experiences from agents, compute the gradients
         while True:
@@ -157,14 +166,6 @@ def central_agent(net_params_queues, exp_queues):
             # compute aggregated gradient
             assert NUM_AGENTS == len(actor_gradient_batch)
             assert len(actor_gradient_batch) == len(critic_gradient_batch)
-            # assembled_actor_gradient = actor_gradient_batch[0]
-            # assembled_critic_gradient = critic_gradient_batch[0]
-            # for i in xrange(len(actor_gradient_batch) - 1):
-            #     for j in xrange(len(assembled_actor_gradient)):
-            #             assembled_actor_gradient[j] += actor_gradient_batch[i][j]
-            #             assembled_critic_gradient[j] += critic_gradient_batch[i][j]
-            # actor.apply_gradients(assembled_actor_gradient)
-            # critic.apply_gradients(assembled_critic_gradient)
             for i in range(len(actor_gradient_batch)):
                 actor.apply_gradients(actor_gradient_batch[i])
                 critic.apply_gradients(critic_gradient_batch[i])
@@ -180,23 +181,30 @@ def central_agent(net_params_queues, exp_queues):
                          ' Avg_reward: ' + str(avg_reward) +
                          ' Avg_entropy: ' + str(avg_entropy))
 
+            #Training summary
             summary_str = sess.run(summary_ops, feed_dict={
                 summary_vars[0]: avg_td_loss,
                 summary_vars[1]: avg_reward,
                 summary_vars[2]: avg_entropy
             })
-
             writer.add_summary(summary_str, epoch)
             writer.flush()
+            # Testing summary
+            summary_str = sess.run(summary_ops, feed_dict={
+                summary_vars[0]: test_avg_td_loss,
+                summary_vars[1]: test_avg_reward,
+                summary_vars[2]: test_avg_entropy
+            })
+
+            test_writer.add_summary(summary_str, epoch)
+            test_writer.flush()
 
             if epoch % MODEL_SAVE_INTERVAL == 0:
                 # Save the neural net parameters to disk.
-                save_path = saver.save(sess, SUMMARY_DIR + "/nn_model_ep_" +
-                                       str(epoch) + ".ckpt")
+                save_path = saver.save(sess, SUMMARY_DIR + "/nn_model_ep_" + str(epoch) + ".ckpt")
                 logging.info("Model saved in file: " + save_path)
-                testing(epoch, 
-                    SUMMARY_DIR + "/nn_model_ep_" + str(epoch) + ".ckpt", 
-                    test_log_file)
+                test_avg_reward, test_avg_entropy = testing(epoch, SUMMARY_DIR + "/nn_model_ep_" + str(epoch) + ".ckpt", test_log_file)
+
 
 
 def agent(agent_id, all_cooked_time, all_cooked_bw, net_params_queue, exp_queue):
@@ -205,7 +213,7 @@ def agent(agent_id, all_cooked_time, all_cooked_bw, net_params_queue, exp_queue)
                               all_cooked_bw=all_cooked_bw,
                               random_seed=agent_id)
 
-    with tf.compat.v1.Session() as sess, open(LOG_FILE + '_agent_' + str(agent_id), 'wb') as log_file:
+    with tf.compat.v1.Session() as sess, open(LOG_FILE + '_agent_' + str(agent_id), 'w') as log_file:
         actor = a3c.ActorNetwork(sess,
                                  state_dim=[S_INFO, S_LEN], action_dim=A_DIM,
                                  learning_rate=ACTOR_LR_RATE)
@@ -268,7 +276,7 @@ def agent(agent_id, all_cooked_time, all_cooked_bw, net_params_queue, exp_queue)
 
             # retrieve previous state
             if len(s_batch) == 0:
-                state = [np.zeros((S_INFO, S_LEN))]
+                state = np.zeros((S_INFO, S_LEN))
             else:
                 state = np.array(s_batch[-1], copy=True)
 
@@ -293,14 +301,13 @@ def agent(agent_id, all_cooked_time, all_cooked_bw, net_params_queue, exp_queue)
             entropy_record.append(a3c.compute_entropy(action_prob[0]))
 
             # log time_stamp, bit_rate, buffer_size, reward
-            log_file.write((
-                           str(time_stamp) + '\t' +
+            log_file.write(str(time_stamp) + '\t' +
                            str(VIDEO_BIT_RATE[bit_rate]) + '\t' +
                            str(buffer_size) + '\t' +
                            str(rebuf) + '\t' +
                            str(video_chunk_size) + '\t' +
                            str(delay) + '\t' +
-                           str(reward) + '\n').encode('utf-8'))
+                           str(reward) + '\n')
             log_file.flush()
 
             # report experience to the coordinator
