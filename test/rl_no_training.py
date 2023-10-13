@@ -5,7 +5,6 @@ import tensorflow as tf
 import fixed_env as env
 import a3c
 import load_trace
-import matplotlib.pyplot as plt
 
 
 S_INFO = 6  # bit_rate, buffer_size, next_chunk_size, bandwidth_measurement(throughput and time), chunk_til_video_end
@@ -45,7 +44,7 @@ def main():
     log_path = LOG_FILE + '_' + all_file_names[net_env.trace_idx]
     log_file = open(log_path, 'wb')
 
-    with tf.Session() as sess:
+    with tf.compat.v1.Session() as sess:
 
         actor = a3c.ActorNetwork(sess,
                                  state_dim=[S_INFO, S_LEN], action_dim=A_DIM,
@@ -55,8 +54,8 @@ def main():
                                    state_dim=[S_INFO, S_LEN],
                                    learning_rate=CRITIC_LR_RATE)
 
-        sess.run(tf.global_variables_initializer())
-        saver = tf.train.Saver()  # save neural net parameters
+        sess.run(tf.compat.v1.global_variables_initializer())
+        saver = tf.compat.v1.train.Saver()  # save neural net parameters
 
         # restore neural net parameters
         nn_model = NN_MODEL
@@ -112,7 +111,7 @@ def main():
 
             # retrieve previous state
             if len(s_batch) == 0:
-                state = [np.zeros((S_INFO, S_LEN))]
+                state = np.zeros((S_INFO, S_LEN))
             else:
                 state = np.array(s_batch[-1], copy=True)
 
@@ -155,14 +154,14 @@ def main():
                 a_batch.append(action_vec)
                 entropy_record = []
 
-                print "video count", video_count
+                print("video count", video_count)
                 video_count += 1
 
                 if video_count >= len(all_file_names):
                     break
 
                 log_path = LOG_FILE + '_' + all_file_names[net_env.trace_idx]
-                log_file = open(log_path, 'wb')
+                log_file = open(log_path, 'w')
 
 
 if __name__ == '__main__':
