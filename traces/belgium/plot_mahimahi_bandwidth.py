@@ -34,7 +34,7 @@ throuput_all = PACKET_SIZE * \
 			   MILLISECONDS_IN_SECONDS / \
 			   MBITS_IN_BITS
 
-print throuput_all
+print(throuput_all)
 plt.plot(np.array(time_all[1:]) / MILLISECONDS_IN_SECONDS, 
 		 np.convolve(throuput_all, np.ones(N,)/N, mode='same'))
 plt.xlabel('Time (second)')
