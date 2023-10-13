@@ -41,7 +41,7 @@ def main():
 		bw = []
 		reward = []
 
-		print log_file
+		print(log_file)
 
 		with open(RESULTS_FOLDER + log_file, 'rb') as f:
 			if SIM_DP in log_file:
