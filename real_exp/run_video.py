@@ -84,7 +84,7 @@ try:
 	proc.send_signal(signal.SIGINT)
 	# proc.kill()
 	
-	print 'done'
+	print('done')
 	
 except Exception as e:
 	try: 
@@ -100,5 +100,4 @@ except Exception as e:
 	except:
 		pass
 	
-	print e	
-
+	print(e)
