@@ -1,4 +1,4 @@
-# Pensieve (reimplementation and bug fixes)
+# Pensieve (Reimplementation for Python 3 and TF 2.13.0)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1yONkb2k5UCdT3clVUvq3jnT15oOTy0IP?usp=sharing)
 
 Pensieve is a system that generates adaptive bitrate algorithms using reinforcement learning.
