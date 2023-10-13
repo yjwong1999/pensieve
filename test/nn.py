@@ -1,4 +1,3 @@
-import numpy as np
 import tensorflow as tf
 import tflearn
 
@@ -16,28 +15,28 @@ class PredictionNetwork(object):
 
         # Get all network parameters
         self.network_params = \
-            tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='nn')
+            tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.TRAINABLE_VARIABLES, scope='nn')
 
         # Set all network parameters
         self.input_network_params = []
         for param in self.network_params:
             self.input_network_params.append(
-                tf.placeholder(tf.float32, shape=param.get_shape()))
+                tf.compat.v1.placeholder(tf.float32, shape=param.get_shape()))
         self.set_network_params_op = []
         for idx, param in enumerate(self.input_network_params):
             self.set_network_params_op.append(self.network_params[idx].assign(param))
 
         # Network target
-        self.target = tf.placeholder(tf.float32, [None, self.a_dim])
+        self.target = tf.compat.v1.placeholder(tf.float32, [None, self.a_dim])
 
         self.cross_entropy = tf.reduce_mean(
             tf.nn.softmax_cross_entropy_with_logits(labels=self.target, logits=self.out))
 
-        self.optimize = tf.train.RMSPropOptimizer(self.lr_rate).\
+        self.optimize = tf.compat.v1.train.RMSPropOptimizer(self.lr_rate).\
                         minimize(self.cross_entropy, var_list=self.network_params)
 
     def create_network(self):
-        with tf.variable_scope('nn'):
+        with tf.compat.v1.variable_scope('nn'):
             inputs = tflearn.input_data(shape=[None, self.s_dim[0], self.s_dim[1]])
             split_0 = tflearn.conv_1d(inputs[:, 0:1, :], 128, 4, activation='relu')
             split_1 = tflearn.conv_1d(inputs[:, 1:2, :], 128, 4, activation='relu')
@@ -75,9 +74,9 @@ class PredictionNetwork(object):
 def build_summaries():
 
     loss = tf.Variable(0.)
-    tf.scalar_summary("Loss", loss)
+    tf.summary.scalar("Loss", loss)
     
     summary_vars = [loss]
-    summary_ops = tf.merge_all_summaries()
+    summary_ops = tf.compat.v1.summary.merge_all()
 
     return summary_ops, summary_vars
