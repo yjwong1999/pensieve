@@ -40,9 +40,9 @@ def main():
                               all_cooked_bw=all_cooked_bw)
 
     log_path = LOG_FILE + '_' + all_file_names[net_env.trace_idx]
-    log_file = open(log_path, 'wb')
+    log_file = open(log_path, 'w')
 
-    with tf.Session() as sess:
+    with tf.compat.v1.Session() as sess:
 
         actor = a3c.ActorNetwork(sess,
                                  state_dim=[S_INFO, S_LEN], action_dim=A_DIM,
@@ -52,8 +52,8 @@ def main():
                                    state_dim=[S_INFO, S_LEN],
                                    learning_rate=CRITIC_LR_RATE)
 
-        sess.run(tf.global_variables_initializer())
-        saver = tf.train.Saver()  # save neural net parameters
+        sess.run(tf.compat.v1.global_variables_initializer())
+        saver = tf.compat.v1.train.Saver()  # save neural net parameters
 
         # restore neural net parameters
         if NN_MODEL is not None:  # NN_MODEL is the path to file
@@ -72,6 +72,7 @@ def main():
         a_batch = [action_vec]
         r_batch = []
         entropy_record = []
+        entropy_ = 0.5
 
         video_count = 0
 
@@ -103,12 +104,13 @@ def main():
                            str(rebuf) + '\t' +
                            str(video_chunk_size) + '\t' +
                            str(delay) + '\t' +
+                           str(entropy_) + '\t' +
                            str(reward) + '\n')
             log_file.flush()
 
             # retrieve previous state
             if len(s_batch) == 0:
-                state = [np.zeros((S_INFO, S_LEN))]
+                state = np.zeros((S_INFO, S_LEN))
             else:
                 state = np.array(s_batch[-1], copy=True)
 
@@ -130,8 +132,8 @@ def main():
             # because there is an intrinsic discrepancy in passing single state and batch states
 
             s_batch.append(state)
-
-            entropy_record.append(a3c.compute_entropy(action_prob[0]))
+            entropy_ = a3c.compute_entropy(action_prob[0])
+            entropy_record.append(entropy_)
 
             if end_of_video:
                 log_file.write('\n')
@@ -157,7 +159,7 @@ def main():
                     break
 
                 log_path = LOG_FILE + '_' + all_file_names[net_env.trace_idx]
-                log_file = open(log_path, 'wb')
+                log_file = open(log_path, 'w')
 
 
 if __name__ == '__main__':
