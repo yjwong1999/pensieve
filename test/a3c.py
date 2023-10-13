@@ -26,40 +26,40 @@ class ActorNetwork(object):
 
         # Get all network parameters
         self.network_params = \
-            tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='actor')
+            tf.compat.v1.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='actor')
 
         # Set all network parameters
         self.input_network_params = []
         for param in self.network_params:
             self.input_network_params.append(
-                tf.placeholder(tf.float32, shape=param.get_shape()))
+                tf.compat.v1.placeholder(tf.float32, shape=param.get_shape()))
         self.set_network_params_op = []
         for idx, param in enumerate(self.input_network_params):
             self.set_network_params_op.append(self.network_params[idx].assign(param))
 
         # Selected action, 0-1 vector
-        self.acts = tf.placeholder(tf.float32, [None, self.a_dim])
+        self.acts = tf.compat.v1.placeholder(tf.float32, [None, self.a_dim])
 
         # This gradient will be provided by the critic network
-        self.act_grad_weights = tf.placeholder(tf.float32, [None, 1])
+        self.act_grad_weights = tf.compat.v1.placeholder(tf.float32, [None, 1])
 
         # Compute the objective (log action_vector and entropy)
-        self.obj = tf.reduce_sum(tf.multiply(
-                       tf.log(tf.reduce_sum(tf.multiply(self.out, self.acts),
-                                            reduction_indices=1, keep_dims=True)),
-                       -self.act_grad_weights)) \
+        self.obj = tf.compat.v1.reduce_sum(tf.compat.v1.multiply(
+            tf.compat.v1.log(tf.reduce_sum(tf.compat.v1.multiply(self.out, self.acts),
+                                 axis=1, keepdims=True)),
+            -self.act_grad_weights)) \
                    + ENTROPY_WEIGHT * tf.reduce_sum(tf.multiply(self.out,
-                                                           tf.log(self.out + ENTROPY_EPS)))
+                                                                tf.compat.v1.log(self.out + ENTROPY_EPS)))
 
         # Combine the gradients here
         self.actor_gradients = tf.gradients(self.obj, self.network_params)
 
         # Optimization Op
-        self.optimize = tf.train.RMSPropOptimizer(self.lr_rate).\
+        self.optimize = tf.compat.v1.train.RMSPropOptimizer(self.lr_rate).\
             apply_gradients(zip(self.actor_gradients, self.network_params))
 
     def create_actor_network(self):
-        with tf.variable_scope('actor'):
+        with tf.compat.v1.variable_scope('actor'):
             inputs = tflearn.input_data(shape=[None, self.s_dim[0], self.s_dim[1]])
 
             split_0 = tflearn.fully_connected(inputs[:, 0:1, -1], 128, activation='relu')
@@ -67,7 +67,7 @@ class ActorNetwork(object):
             split_2 = tflearn.conv_1d(inputs[:, 2:3, :], 128, 4, activation='relu')
             split_3 = tflearn.conv_1d(inputs[:, 3:4, :], 128, 4, activation='relu')
             split_4 = tflearn.conv_1d(inputs[:, 4:5, :A_DIM], 128, 4, activation='relu')
-            split_5 = tflearn.fully_connected(inputs[:, 4:5, -1], 128, activation='relu')
+            split_5 = tflearn.fully_connected(inputs[:, 5:6, -1], 128, activation='relu')
 
             split_2_flat = tflearn.flatten(split_2)
             split_3_flat = tflearn.flatten(split_3)
@@ -129,19 +129,19 @@ class CriticNetwork(object):
 
         # Get all network parameters
         self.network_params = \
-            tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='critic')
+            tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.TRAINABLE_VARIABLES, scope='critic')
 
         # Set all network parameters
         self.input_network_params = []
         for param in self.network_params:
             self.input_network_params.append(
-                tf.placeholder(tf.float32, shape=param.get_shape()))
+                tf.compat.v1.placeholder(tf.float32, shape=param.get_shape()))
         self.set_network_params_op = []
         for idx, param in enumerate(self.input_network_params):
             self.set_network_params_op.append(self.network_params[idx].assign(param))
 
         # Network target V(s)
-        self.td_target = tf.placeholder(tf.float32, [None, 1])
+        self.td_target = tf.compat.v1.placeholder(tf.float32, [None, 1])
 
         # Temporal Difference, will also be weights for actor_gradients
         self.td = tf.subtract(self.td_target, self.out)
@@ -153,11 +153,11 @@ class CriticNetwork(object):
         self.critic_gradients = tf.gradients(self.loss, self.network_params)
 
         # Optimization Op
-        self.optimize = tf.train.RMSPropOptimizer(self.lr_rate).\
+        self.optimize = tf.compat.v1.train.RMSPropOptimizer(self.lr_rate).\
             apply_gradients(zip(self.critic_gradients, self.network_params))
 
     def create_critic_network(self):
-        with tf.variable_scope('critic'):
+        with tf.compat.v1.variable_scope('critic'):
             inputs = tflearn.input_data(shape=[None, self.s_dim[0], self.s_dim[1]])
 
             split_0 = tflearn.fully_connected(inputs[:, 0:1, -1], 128, activation='relu')
@@ -165,7 +165,7 @@ class CriticNetwork(object):
             split_2 = tflearn.conv_1d(inputs[:, 2:3, :], 128, 4, activation='relu')
             split_3 = tflearn.conv_1d(inputs[:, 3:4, :], 128, 4, activation='relu')
             split_4 = tflearn.conv_1d(inputs[:, 4:5, :A_DIM], 128, 4, activation='relu')
-            split_5 = tflearn.fully_connected(inputs[:, 4:5, -1], 128, activation='relu')
+            split_5 = tflearn.fully_connected(inputs[:, 5:6, -1], 128, activation='relu')
 
             split_2_flat = tflearn.flatten(split_2)
             split_3_flat = tflearn.flatten(split_3)
@@ -234,7 +234,7 @@ def compute_gradients(s_batch, a_batch, r_batch, terminal, actor, critic):
     else:
         R_batch[-1, 0] = v_batch[-1, 0]  # boot strap from last state
 
-    for t in reversed(xrange(ba_size - 1)):
+    for t in reversed(range(ba_size - 1)):
         R_batch[t, 0] = r_batch[t] + GAMMA * R_batch[t + 1, 0]
 
     td_batch = R_batch - v_batch
@@ -252,7 +252,7 @@ def discount(x, gamma):
     """
     out = np.zeros(len(x))
     out[-1] = x[-1]
-    for i in reversed(xrange(len(x)-1)):
+    for i in reversed(range(len(x)-1)):
         out[i] = x[i] + gamma*out[i+1]
     assert x.ndim >= 1
     # More efficient version:
@@ -266,21 +266,21 @@ def compute_entropy(x):
     H(x) = - sum( p * log(p))
     """
     H = 0.0
-    for i in xrange(len(x)):
+    for i in range(len(x)):
         if 0 < x[i] < 1:
             H -= x[i] * np.log(x[i])
     return H
 
 
 def build_summaries():
-    td_loss = tf.Variable(0.)
-    tf.summary.scalar("TD_loss", td_loss)
-    eps_total_reward = tf.Variable(0.)
-    tf.summary.scalar("Eps_total_reward", eps_total_reward)
-    avg_entropy = tf.Variable(0.)
-    tf.summary.scalar("Avg_entropy", avg_entropy)
+    td_loss = tf.compat.v1.Variable(0.)
+    tf.compat.v1.summary.scalar("TD_loss", td_loss)
+    eps_total_reward = tf.compat.v1.Variable(0.)
+    tf.compat.v1.summary.scalar("Eps_total_reward", eps_total_reward)
+    avg_entropy = tf.compat.v1.Variable(0.)
+    tf.compat.v1.summary.scalar("Avg_entropy", avg_entropy)
 
     summary_vars = [td_loss, eps_total_reward, avg_entropy]
-    summary_ops = tf.summary.merge_all()
+    summary_ops = tf.compat.v1.summary.merge_all()
 
     return summary_ops, summary_vars
