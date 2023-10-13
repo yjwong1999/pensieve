@@ -23,7 +23,7 @@ def main():
 				parse = line.split()
 				R += float(parse[-1])
 		
-		print log_file
+		print(log_file)
 
 		if 'BB' in log_file:
 			total_reward_all['BB'][log_file[7:]] = R
@@ -37,7 +37,7 @@ def main():
 			total_reward_all['BOLA'][log_file[9:]] = R
 
 		else:
-			print "Error: log name doesn't contain proper abr schemes."
+			print("Error: log name doesn't contain proper abr schemes.")
 		
 		
 	log_file_all = []
