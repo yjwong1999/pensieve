@@ -1,7 +1,6 @@
 import numpy as np
-import fixed_env2 as env
+import fixed_env as env
 import load_trace
-import matplotlib.pyplot as plt
 import itertools
 
 
@@ -264,16 +263,15 @@ def main():
             a_batch.append(action_vec)
             entropy_record = []
 
-            print "video count", video_count
+            print("video count", video_count)
             video_count += 1
 
             if video_count >= len(all_file_names):
                 break
 
             log_path = LOG_FILE + '_' + all_file_names[net_env.trace_idx]
-            log_file = open(log_path, 'wb')
+            log_file = open(log_path, 'w')
 
 
 if __name__ == '__main__':
     main()
-
