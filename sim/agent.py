@@ -32,6 +32,7 @@ SUMMARY_DIR = './results'
 LOG_FILE = './results/log'
 # log in format of time_stamp bit_rate buffer_size rebuffer_time chunk_size download_time reward
 NN_MODEL = None
+NN_MODEL = './results/nn_model_ep_25500.ckpt'
 
 
 def main():
@@ -48,7 +49,7 @@ def main():
     net_env = env.Environment(all_cooked_time=all_cooked_time,
                               all_cooked_bw=all_cooked_bw)
 
-    with tf.Session() as sess, open(LOG_FILE, 'wb') as log_file:
+    with tf.compat.v1.Session() as sess, open(LOG_FILE, 'w') as log_file:
 
         actor = a3c.ActorNetwork(sess,
                                  state_dim=[S_INFO, S_LEN], action_dim=A_DIM,
@@ -60,9 +61,9 @@ def main():
 
         summary_ops, summary_vars = a3c.build_summaries()
 
-        sess.run(tf.global_variables_initializer())
-        writer = tf.summary.FileWriter(SUMMARY_DIR, sess.graph)  # training monitor
-        saver = tf.train.Saver()  # save neural net parameters
+        sess.run(tf.compat.v1.global_variables_initializer())
+        writer = tf.compat.v1.summary.FileWriter(SUMMARY_DIR, sess.graph)  # training monitor
+        saver = tf.compat.v1.train.Saver()  # save neural net parameters
 
         # restore neural net parameters
         nn_model = NN_MODEL
@@ -70,7 +71,7 @@ def main():
             saver.restore(sess, nn_model)
             print("Model restored.")
 
-        epoch = 0
+        epoch = 25500
         time_stamp = 0
 
         last_bit_rate = DEFAULT_QUALITY
@@ -154,10 +155,7 @@ def main():
                 actor_gradient_batch.append(actor_gradient)
                 critic_gradient_batch.append(critic_gradient)
 
-                print "===="
-                print "Epoch", epoch
-                print "TD_loss", td_loss, "Avg_reward", np.mean(r_batch), "Avg_entropy", np.mean(entropy_record)
-                print "===="
+                print("==== Epoch", epoch, "TD_loss", td_loss, "Avg_reward", np.mean(r_batch), "Avg_entropy", np.mean(entropy_record),"====")
 
                 summary_str = sess.run(summary_ops, feed_dict={
                     summary_vars[0]: td_loss,
@@ -183,7 +181,7 @@ def main():
                     # actor.apply_gradients(assembled_actor_gradient)
                     # critic.apply_gradients(assembled_critic_gradient)
 
-                    for i in xrange(len(actor_gradient_batch)):
+                    for i in range(len(actor_gradient_batch)):
                         actor.apply_gradients(actor_gradient_batch[i])
                         critic.apply_gradients(critic_gradient_batch[i])
 
