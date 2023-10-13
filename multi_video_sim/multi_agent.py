@@ -63,7 +63,8 @@ def bitrate_to_action(bitrate, mask, a_dim=A_DIM):
 def testing(epoch, nn_model, log_file):
     # clean up the test results folder
     os.system('rm -r ' + TEST_LOG_FOLDER)
-    os.system('mkdir ' + TEST_LOG_FOLDER)
+    if not os.path.exists(TEST_LOG_FOLDER):
+        os.makedirs(TEST_LOG_FOLDER)
     
     # run test script
     os.system('python rl_test.py ' + nn_model)
@@ -110,7 +111,7 @@ def central_agent(net_params_queues, exp_queues):
                         filemode='w',
                         level=logging.INFO)
 
-    with tf.Session() as sess, open(LOG_FILE + '_test', 'wb') as test_log_file:
+    with tf.compat.v1.Session() as sess, open(LOG_FILE + '_test', 'wb') as test_log_file:
 
         actor = a3c.ActorNetwork(sess,
                                  state_dim=[S_INFO, S_LEN], action_dim=A_DIM,
@@ -121,9 +122,9 @@ def central_agent(net_params_queues, exp_queues):
 
         summary_ops, summary_vars = a3c.build_summaries()
 
-        sess.run(tf.global_variables_initializer())
-        writer = tf.summary.FileWriter(SUMMARY_DIR, sess.graph)  # training monitor
-        saver = tf.train.Saver(max_to_keep=10000)  # save neural net parameters
+        sess.run(tf.compat.v1.global_variables_initializer())
+        writer = tf.compat.v1.summary.FileWriter(SUMMARY_DIR, sess.graph)  # training monitor
+        saver = tf.compat.v1.train.Saver(max_to_keep=10000)  # save neural net parameters
 
         # restore neural net parameters
         nn_model = NN_MODEL
@@ -138,7 +139,7 @@ def central_agent(net_params_queues, exp_queues):
             # synchronize the network parameters of work agent
             actor_net_params = actor.get_network_params()
             critic_net_params = critic.get_network_params()
-            for i in xrange(NUM_AGENTS):
+            for i in range(NUM_AGENTS):
                 net_params_queues[i].put([actor_net_params, critic_net_params])
 
             # record average reward and td loss change
@@ -153,7 +154,7 @@ def central_agent(net_params_queues, exp_queues):
             actor_gradient_batch = []
             critic_gradient_batch = []
 
-            for i in xrange(NUM_AGENTS):
+            for i in range(NUM_AGENTS):
                 s_batch, a_batch, r_batch, terminal, info = exp_queues[i].get()
 
                 actor_gradient, critic_gradient, td_batch = \
@@ -163,7 +164,7 @@ def central_agent(net_params_queues, exp_queues):
                         r_batch=np.vstack(r_batch),
                         terminal=terminal, actor=actor, critic=critic)
 
-                for i in xrange(len(actor_gradient)):
+                for i in range(len(actor_gradient)):
                     assert np.any(np.isnan(actor_gradient[i])) == False
 
                 actor_gradient_batch.append(actor_gradient)
@@ -186,7 +187,7 @@ def central_agent(net_params_queues, exp_queues):
             #             assembled_critic_gradient[j] += critic_gradient_batch[i][j]
             # actor.apply_gradients(assembled_actor_gradient)
             # critic.apply_gradients(assembled_critic_gradient)
-            for i in xrange(len(actor_gradient_batch)):
+            for i in range(len(actor_gradient_batch)):
                 actor.apply_gradients(actor_gradient_batch[i])
                 critic.apply_gradients(critic_gradient_batch[i])
 
@@ -226,7 +227,7 @@ def agent(agent_id, net_params_queue, exp_queue):
                               fixed_env=False,
                               trace_folder=TRAIN_TRACES)
 
-    with tf.Session() as sess, open(LOG_FILE + '_agent_' + str(agent_id), 'wb') as log_file:
+    with tf.compat.v1.Session() as sess, open(LOG_FILE + '_agent_' + str(agent_id), 'w') as log_file:
         actor = a3c.ActorNetwork(sess,
                                  state_dim=[S_INFO, S_LEN], action_dim=A_DIM,
                                  learning_rate=ACTOR_LR_RATE)
@@ -281,7 +282,7 @@ def agent(agent_id, net_params_queue, exp_queue):
 
             # retrieve previous state
             if len(s_batch) == 0:
-                state = [np.zeros((S_INFO, S_LEN))]
+                state = np.zeros((S_INFO, S_LEN))
             else:
                 state = np.array(s_batch[-1], copy=True)
 
@@ -296,7 +297,7 @@ def agent(agent_id, net_params_queue, exp_queue):
             state[4, -1] = video_chunk_remain / float(video_num_chunks)
             state[5, :] = -1
             nxt_chnk_cnt = 0
-            for i in xrange(A_DIM):
+            for i in range(A_DIM):
                 if mask[i] == 1:
                     state[5, i] = next_video_chunk_size[nxt_chnk_cnt] / M_IN_B
                     nxt_chnk_cnt += 1
@@ -377,7 +378,7 @@ def main():
     # inter-process communication queues
     net_params_queues = []
     exp_queues = []
-    for i in xrange(NUM_AGENTS):
+    for i in range(NUM_AGENTS):
         net_params_queues.append(mp.Queue(1))
         exp_queues.append(mp.Queue(1))
 
@@ -388,12 +389,12 @@ def main():
     coordinator.start()
 
     agents = []
-    for i in xrange(NUM_AGENTS):
+    for i in range(NUM_AGENTS):
         agents.append(mp.Process(target=agent,
                                  args=(i,
                                        net_params_queues[i],
                                        exp_queues[i])))
-    for i in xrange(NUM_AGENTS):
+    for i in range(NUM_AGENTS):
         agents[i].start()
 
     # wait unit training is done
