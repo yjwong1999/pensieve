@@ -138,7 +138,7 @@ def main():
             entropy_record.append(a3c.compute_entropy(action_prob[0]))
 
             if end_of_video:
-                log_file.write('\n')
+                log_file.write('\n'.encode('utf-8'))
                 log_file.close()
 
                 last_bit_rate = DEFAULT_QUALITY
