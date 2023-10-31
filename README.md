@@ -19,6 +19,7 @@ conda activate pensieve
 
 - Install prerequisites (tested with Ubuntu 16.04, Tensorflow v1.1.0, TFLearn v0.3.1 and Selenium v2.39.0)
 ```
+cd pensieve
 python setup.py
 ```
 
