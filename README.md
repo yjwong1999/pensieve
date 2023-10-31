@@ -6,6 +6,11 @@ Pensieve is a system that generates adaptive bitrate algorithms using reinforcem
 http://web.mit.edu/pensieve/
 
 ### Prerequisites
+- Clone the repo
+```
+git clone https://github.com/yjwong1999/pensieve.git
+```
+
 - Setup Conda environment
 ```
 conda create --name pensieve python=3.8.10
