@@ -1,6 +1,6 @@
 import os
 
-COOKED_TRACE_FOLDER = './cooked_traces/'
+COOKED_TRACE_FOLDER = '../sim/cooked_traces/'
 
 def load_trace(cooked_trace_folder=COOKED_TRACE_FOLDER):
     cooked_files = os.listdir(cooked_trace_folder)
