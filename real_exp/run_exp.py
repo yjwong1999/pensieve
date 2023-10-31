@@ -13,36 +13,36 @@ REPEAT_TIME = 10
 
 def main():
 
-	np.random.seed(RANDOM_SEED)
+    np.random.seed(RANDOM_SEED)
 
-	with open('./chrome_retry_log', 'wb') as log:
-		log.write('chrome retry log\n')
-		log.flush()
+    with open('./chrome_retry_log', 'wb') as log:
+        log.write('chrome retry log\n'.encode('utf-8'))
+        log.flush()
 
-		for rt in xrange(REPEAT_TIME):
-			np.random.shuffle(ABR_ALGO)
-			for abr_algo in ABR_ALGO:
-
-				while True:
-
-					script = 'python ' + RUN_SCRIPT + ' ' + \
-							  abr_algo + ' ' + str(RUN_TIME) + ' ' + str(rt)
+        for rt in range(REPEAT_TIME):
+            np.random.shuffle(ABR_ALGO)
+            for abr_algo in ABR_ALGO:
+                while True:
+                    script = 'python ' + RUN_SCRIPT + ' ' + \
+                                abr_algo + ' ' + str(RUN_TIME) + ' ' + str(rt)
 					
-					proc = subprocess.Popen(script,
-							  stdout=subprocess.PIPE, 
-							  stderr=subprocess.PIPE, 
-							  shell=True)
+                    proc = subprocess.Popen(script,
+                                stdout=subprocess.PIPE, 
+                                stderr=subprocess.PIPE, 
+                                shell=True)
 
-					(out, err) = proc.communicate()
+                    (out, err) = proc.communicate()
 
-					if out == 'done\n':
-						break
-					else:
-						log.write(abr_algo + '_' + str(rt) + '\n')
-						log.write(out + '\n')
-						log.flush()
+                    if out == 'done\n':
+                        break
+                    else:
+                        msg = abr_algo + '_' + str(rt) + '\n'
+                        log.write(msg.encode('utf-8'))
+                        msg = out.decode('utf-8') + '\n'
+                        log.write(msg.encode('utf-8'))
+                        log.flush()
 
 
 
 if __name__ == '__main__':
-	main()
+    main()
