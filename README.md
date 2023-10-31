@@ -18,7 +18,7 @@ python setup.py
 ```
 
 ### Get data
-- Download traces
+- Download traces: put training data in `sim/cooked_traces` and testing data in `sim/cooked_test_traces`
 ```
 # https://github.com/hongzimao/pensieve/issues/134#issuecomment-894000647
 cd sim
@@ -28,9 +28,12 @@ cd ../
 ```
 
 ### Training
-- To train a new model, put training data in `sim/cooked_traces` and testing data in `sim/cooked_test_traces`, then in `sim/` run `python get_video_sizes.py` and then run
+- To train a new model, run:
 ```
+cd sim
+python get_video_sizes.py
 python multi_agent.py
+cd ../
 ```
 
 The reward signal and meta-setting of video can be modified in `multi_agent.py` and `env.py`. More details can be found in `sim/README.md`.
@@ -38,7 +41,10 @@ The reward signal and meta-setting of video can be modified in `multi_agent.py` 
 ### Testing
 - To test the trained model in simulated environment, first copy over the model to `test/models` and modify the `NN_MODEL` field of `test/rl_no_training.py` , and then in `test/` run `python get_video_sizes.py` and then run 
 ```
+cd test
+python get_video_sizes.py
 python rl_no_training.py
+cd ../
 ```
 
 Similar testing can be performed for buffer-based approach (`bb.py`), mpc (`mpc.py`) and offline-optimal (`dp.cc`) in simulations. More details can be found in `test/README.md`.
