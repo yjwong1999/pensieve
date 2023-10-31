@@ -107,7 +107,7 @@ def main():
                            str(video_chunk_size) + '\t' + \
                            str(delay) + '\t' + \
                            str(reward) + '\n'
-            log_file.write(msg.encode('utf-8'))
+            log_file.write(msg)
             log_file.flush()
 
             # retrieve previous state
