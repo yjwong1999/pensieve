@@ -17,6 +17,16 @@ conda activate pensieve
 python setup.py
 ```
 
+### Get data
+- Download traces
+```
+# https://github.com/hongzimao/pensieve/issues/134#issuecomment-894000647
+cd sim
+wget https://github.com/hongzimao/pensieve/files/6943078/cooked_traces.zip
+unzip cooked_traces.zip
+cd ../
+```
+
 ### Training
 - To train a new model, put training data in `sim/cooked_traces` and testing data in `sim/cooked_test_traces`, then in `sim/` run `python get_video_sizes.py` and then run
 ```
