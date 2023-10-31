@@ -107,7 +107,10 @@ def main():
                            str(video_chunk_size) + '\t' + \
                            str(delay) + '\t' + \
                            str(reward) + '\n'
-            log_file.write(msg)
+            try:
+                log_file.write(msg.encode('utf-8'))
+            except:
+                log_file.write(msg)
             log_file.flush()
 
             # retrieve previous state
@@ -138,7 +141,10 @@ def main():
             entropy_record.append(a3c.compute_entropy(action_prob[0]))
 
             if end_of_video:
-                log_file.write('\n'.encode('utf-8'))
+                try:
+                    log_file.write('\n'.encode('utf-8'))
+                except:
+                    log_file.write('\n')
                 log_file.close()
 
                 last_bit_rate = DEFAULT_QUALITY
