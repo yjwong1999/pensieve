@@ -4,7 +4,7 @@ import logging
 import numpy as np
 import multiprocessing as mp
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="0,1"
+os.environ["CUDA_VISIBLE_DEVICES"]="-1"
 import tensorflow as tf
 import env
 import a3c
