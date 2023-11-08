@@ -7,6 +7,9 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.firefox import GeckoDriverManager
 from pyvirtualdisplay import Display
 from time import sleep
 
@@ -34,7 +37,7 @@ exp_id = sys.argv[3]
 # ---------------------------------------------------
 #          |
 #          v
-url = 'localhost/' + 'myindex_' + abr_algo + '.html'
+url = 'http://localhost/' + 'myindex_' + abr_algo + '.html'
 
 # timeout signal
 signal.signal(signal.SIGALRM, timeout_handler)
@@ -49,32 +52,36 @@ try:
 	
 	# start abr algorithm server
 	if abr_algo == 'RL':
-		command = 'exec /usr/bin/python ../rl_server/rl_server_no_training.py ' + exp_id
+		command = 'python ../rl_server/rl_server_no_training.py ' + exp_id
 	elif abr_algo == 'fastMPC':
-		command = 'exec /usr/bin/python ../rl_server/mpc_server.py ' + exp_id
+		command = 'python ../rl_server/mpc_server.py ' + exp_id
 	elif abr_algo == 'robustMPC':
-		command = 'exec /usr/bin/python ../rl_server/robust_mpc_server.py ' + exp_id
+		command = 'python ../rl_server/robust_mpc_server.py ' + exp_id
 	else:
-		command = 'exec /usr/bin/python ../rl_server/simple_server.py ' + abr_algo + ' ' + exp_id
-	
+		command = 'python ../rl_server/simple_server.py ' + abr_algo + ' ' + exp_id
+	print(command)	
 	proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 	sleep(2)
 	
 	# to not display the page in browser
-	display = Display(visible=0, size=(800,600))
+	display = Display(visible=True, size=(800,600))
 	display.start()
 	
 	# initialize chrome driver
+	#'''
 	options=Options()
 	chrome_driver = '../abr_browser_dir/chromedriver'
 	options.add_argument('--user-data-dir=' + chrome_user_dir)
 	options.add_argument('--ignore-certificate-errors')
-	driver=webdriver.Chrome(chrome_driver, chrome_options=options)
-	
+	driver=webdriver.Chrome(ChromeDriverManager().install(), chrome_options=options)
+	#'''
+	#path = GeckoDriverManager().install()
+	#driver = webdriver.Firefox(service=Service(path))
+
 	# run chrome
 	driver.set_page_load_timeout(10)
 	driver.get(url)
-	
+
 	sleep(run_time)
 	
 	driver.quit()
@@ -87,6 +94,9 @@ try:
 	print('done')
 	
 except Exception as e:
+	print(e)
+	import time
+	time.sleep(5)
 	try: 
 		display.stop()
 	except:
