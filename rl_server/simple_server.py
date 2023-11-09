@@ -79,7 +79,7 @@ def make_request_handler(input_dict):
             self.send_header('Content-Length', len(send_data))
             self.send_header('Access-Control-Allow-Origin', "*")
             self.end_headers()
-            self.wfile.write(send_data)
+            self.wfile.write(send_data.encode('utf-8'))
 
         def do_GET(self):
             print(sys.stderr, 'GOT REQ')
