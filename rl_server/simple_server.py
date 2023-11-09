@@ -62,7 +62,7 @@ def make_request_handler(input_dict):
                                     str(video_chunk_size) + '\t' + \
                                     str(video_chunk_fetch_time) + '\t' + \
                                     str(reward) + '\n'
-                self.log_file.write(msg.encode('utf-8').encode('utf-8'))
+                self.log_file.write(msg.encode('utf-8'))
                 self.log_file.flush()
 
                 self.input_dict['last_total_rebuf'] = post_data['RebufferTime']
