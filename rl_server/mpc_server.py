@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer
 import SocketServer
 import base64
 import urllib
