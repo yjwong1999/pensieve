@@ -142,13 +142,14 @@ def make_request_handler(input_dict):
                         state = np.array(self.s_batch[-1], copy=True)
 
                 # log wall_time, bit_rate, buffer_size, rebuffer_time, video_chunk_size, download_time, reward
-                self.log_file.write(str(time.time()) + '\t' +
-                                    str(VIDEO_BIT_RATE[post_data['lastquality']]) + '\t' +
-                                    str(post_data['buffer']) + '\t' +
-                                    str(rebuffer_time / M_IN_K) + '\t' +
-                                    str(video_chunk_size) + '\t' +
-                                    str(video_chunk_fetch_time) + '\t' +
-                                    str(reward) + '\n')
+                msg = str(time.time()) + '\t' + \
+                                    str(VIDEO_BIT_RATE[post_data['lastquality']]) + '\t' + \
+                                    str(post_data['buffer']) + '\t' + \
+                                    str(rebuffer_time / M_IN_K) + '\t' + \
+                                    str(video_chunk_size) + '\t' + \
+                                    str(video_chunk_fetch_time) + '\t' + \
+                                    str(reward) + '\n'
+                self.log_file.write(msg.encode('utf-8'))
                 self.log_file.flush()
 
                 # pick bitrate according to MPC           
