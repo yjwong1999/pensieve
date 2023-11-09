@@ -316,7 +316,6 @@ def run(server_class=HTTPServer, port=8333, log_file_path=LOG_FILE):
         # we compute the difference to get
 
         video_chunk_count = 0
-        print(log_file)
         input_dict = {'log_file': log_file,
                       'last_bit_rate': last_bit_rate,
                       'last_total_rebuf': last_total_rebuf,
