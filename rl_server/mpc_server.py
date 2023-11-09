@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from http.server import BaseHTTPRequestHandler, HTTPServer
-import SocketServer
+import socketserver as SocketServer
 import base64
 import urllib
 import sys
