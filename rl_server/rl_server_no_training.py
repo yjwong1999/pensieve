@@ -177,7 +177,7 @@ def make_request_handler(input_dict):
                     self.input_dict['last_total_rebuf'] = 0
                     self.input_dict['last_bit_rate'] = DEFAULT_QUALITY
                     self.input_dict['video_chunk_coount'] = 0
-                    self.log_file.write('\n')  # so that in the log we know where video ends
+                    self.log_file.write('\n'.encode('utf-8'))  # so that in the log we know where video ends
 
                 self.send_response(200)
                 self.send_header('Content-Type', 'text/plain')
